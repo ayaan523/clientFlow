@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:16-alpine
+    ports: ["5434:5432"]
+    environment: {POSTGRES_DB: clientflow, POSTGRES_USER: clientflow, POSTGRES_PASSWORD: clientflow}
+    volumes: [clientflow-pg:/var/lib/postgresql/data]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U clientflow -d clientflow"], interval: 5s, timeout: 5s, retries: 15}
+  server:
+    build: ./server
+    environment: {PORT: 4300, DATABASE_URL: postgres://clientflow:clientflow@db:5432/clientflow, SESSION_SECRET: docker-local-secret-change-me-please, CLIENT_ORIGIN: http://localhost:5173}
+    ports: ["4300:4300"]
+    depends_on: {db: {condition: service_healthy}}
+volumes: {clientflow-pg:}
